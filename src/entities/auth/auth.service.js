@@ -1,35 +1,92 @@
 import User from './auth.model.js';
 import jwt from 'jsonwebtoken';
-import { refreshTokenSecrete, emailExpires } from '../../core/config/config.js';
+import {
+  refreshTokenSecrete,
+  emailExpires,
+  jwtSecret,
+  jwtExpire,
+  refreshTokenExpiresIn
+} from '../../core/config/config.js';
 import sendEmail from '../../lib/sendEmail.js';
 import verificationCodeTemplate from '../../lib/emailTemplates.js';
+import { createToken } from '../../utility/tokenGenerate.js';
+import bcrypt from 'bcrypt';
 
+export const registerUserService = async (payload) => {
+  const email = payload.email.toLowerCase();
+  // const existingUser = await User.findOne({
+  //   email: { $regex: `^${email}$`, $options: "i" },
+  // });
 
-export const registerUserService = async ({
-  name,
-  email,
-  password
-}) => {
   const existingUser = await User.findOne({ email });
-  if (existingUser) throw new Error('User already registered.');
 
-  const newUser = new User({
-    name,
-    email,
-    password,
+  if (existingUser) {
+    throw new Error('User already exists');
+  }
+
+  if (payload.password.length < 8) {
+    throw new Error('Password must be at least 8 characters long');
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const hashedOtp = await bcrypt.hash(otp, 10);
+  const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
+
+  let result;
+
+  if (existingUser && !existingUser.isVerified) {
+    existingUser.otp = hashedOtp;
+    existingUser.otpExpires = otpExpires;
+    await existingUser.save();
+    result = existingUser;
+  } else {
+    const newUser = new User({
+      ...payload,
+      otp: hashedOtp,
+      otpExpires,
+      isVerified: false
+    });
+    result = await newUser.save();
+  }
+
+  await sendEmail({
+    to: result.email,
+    subject: 'Verify your email',
+    html: verificationCodeTemplate(otp)
   });
 
-  const user = await newUser.save();
+  const JwtToken = {
+    userId: result._id,
+    email: result.email,
+    role: result.role
+  };
 
-  const { _id, role, profileImage } = user;
-  return { _id, name, email, role,  profileImage };
+  const accessToken = createToken(JwtToken, jwtSecret, jwtExpire);
+
+  const refreshToken = createToken(
+    JwtToken,
+    refreshTokenSecrete,
+    refreshTokenExpiresIn
+  );
+
+  return {
+    user: {
+      _id: result._id,
+      name: result.name,
+      email: result.email,
+      role: result.role
+    },
+    accessToken,
+    refreshToken
+  };
 };
-
 
 export const loginUserService = async ({ email, password }) => {
   if (!email || !password) throw new Error('Email and password are required');
 
-  const user = await User.findOne({ email }).select("_id firstName lastName email role profileImage");
+  const user = await User.findOne({ email }).select(
+    '_id firstName lastName email role profileImage'
+  );
 
   if (!user) throw new Error('User not found');
 
@@ -46,9 +103,8 @@ export const loginUserService = async ({ email, password }) => {
   user.refreshToken = user.generateRefreshToken(payload);
   await user.save({ validateBeforeSave: false });
 
-  return data
+  return data;
 };
-
 
 export const refreshAccessTokenService = async (refreshToken) => {
   if (!refreshToken) throw new Error('No refresh token provided');
@@ -57,24 +113,24 @@ export const refreshAccessTokenService = async (refreshToken) => {
 
   if (!user) throw new Error('Invalid refresh token');
 
-  const decoded = jwt.verify(refreshToken, refreshTokenSecrete)
+  const decoded = jwt.verify(refreshToken, refreshTokenSecrete);
 
-  if (!decoded || decoded._id !== user._id.toString()) throw new Error('Invalid refresh token')
+  if (!decoded || decoded._id !== user._id.toString())
+    throw new Error('Invalid refresh token');
 
-  const payload = { _id: user._id , role: user.role }
+  const payload = { _id: user._id, role: user.role };
 
   const accessToken = user.generateAccessToken(payload);
   const newRefreshToken = user.generateRefreshToken(payload);
 
   user.refreshToken = newRefreshToken;
-  await user.save({ validateBeforeSave: false })
+  await user.save({ validateBeforeSave: false });
 
   return {
     accessToken,
     refreshToken: newRefreshToken
-  }
+  };
 };
-
 
 export const forgetPasswordService = async (email) => {
   if (!email) throw new Error('Email is required');
@@ -95,12 +151,11 @@ export const forgetPasswordService = async (email) => {
   await sendEmail({
     to: email,
     subject: 'Password Reset OTP',
-    html: verificationCodeTemplate(otp),
+    html: verificationCodeTemplate(otp)
   });
 
   return;
 };
-
 
 export const verifyCodeService = async ({ email, otp }) => {
   if (!email || !otp) throw new Error('Email and otp are required');
@@ -120,13 +175,12 @@ export const verifyCodeService = async ({ email, otp }) => {
   user.otp = null;
   user.otpExpires = null;
   user.otpVerified = true;
-  user.resetExpires = new Date(Date.now() + 15 * 60 * 1000); 
+  user.resetExpires = new Date(Date.now() + 15 * 60 * 1000);
 
   await user.save({ validateBeforeSave: false });
 
   return;
 };
-
 
 export const resetPasswordService = async ({ email, newPassword }) => {
   if (!email || !newPassword)
@@ -152,9 +206,13 @@ export const resetPasswordService = async ({ email, newPassword }) => {
   return;
 };
 
-
-export const changePasswordService = async ({ userId, oldPassword, newPassword }) => {
-  if (!userId || !oldPassword || !newPassword) throw new Error('User id, old password and new password are required');
+export const changePasswordService = async ({
+  userId,
+  oldPassword,
+  newPassword
+}) => {
+  if (!userId || !oldPassword || !newPassword)
+    throw new Error('User id, old password and new password are required');
 
   const user = await User.findById(userId);
   if (!user) throw new Error('User not found');
