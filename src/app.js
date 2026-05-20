@@ -75,7 +75,7 @@ app.use('/uploads', express.static(uploadPath));
 app.use(express.static(publicPath));
 
 // Set up API routes
-app.use('/api', appRouter);
+app.use('/api/v1', appRouter);
 
 // Set up 404 error middleware
 app.use(notFound);
