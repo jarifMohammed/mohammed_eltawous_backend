@@ -120,7 +120,7 @@ export const callClaudeJSON = async (messages, specificPrompt, temperature = 0.5
         temperature: temperature,
         system: systemPrompt,
         messages: [
-          ...messages,
+          ...(messages || []),
           { role: 'user', content: specificPrompt + "\n\nCRITICAL: YOU FAILED TO RETURN VALID JSON. RETURN ONLY STRICT VALID JSON NOW WITHOUT FENCES OR PREAMBLE." }
         ],
       });

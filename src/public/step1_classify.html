@@ -216,6 +216,7 @@ Local talent scarcity</textarea>
             const results = document.getElementById('resultsSection');
             
             const payload = {
+                sessionId: localStorage.getItem('workshop_session_id') || undefined,
                 company: {
                     name: document.getElementById('companyName').value,
                     focalQuestion: document.getElementById('focalQuestion').value,
@@ -236,14 +237,21 @@ Local talent scarcity</textarea>
                 });
 
                 const result = await response.json();
+                if (result.sessionId) {
+                    localStorage.setItem('workshop_session_id', result.sessionId);
+                }
+
                 if (result.success) {
                     renderResults(result.data);
                     results.style.display = 'grid';
                     // Persist for next step
+                    localStorage.setItem('workshop_session_id', result.sessionId);
                     localStorage.setItem('workshop_company', JSON.stringify(payload.company));
                     localStorage.setItem('workshop_classification', JSON.stringify(result.data));
                     localStorage.setItem('workshop_forces', JSON.stringify(payload.forces));
                     localStorage.setItem('workshop_history', JSON.stringify(result.history));
+                } else {
+                    alert('Error: ' + (result.message || result.error || 'Request failed'));
                 }
             } catch (error) {
                 alert('Error: ' + error.message);

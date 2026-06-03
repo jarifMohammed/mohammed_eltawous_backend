@@ -6,6 +6,7 @@ const state = {
     axes: null,
     scenarios: null,
     windTunnelResult: null,
+    sessionId: null,
     history: [],
     loading: false
 };
@@ -88,8 +89,9 @@ const callAPI = async (endpoint, body) => {
             body: JSON.stringify(body)
         });
         const result = await response.json();
+        if (result.sessionId) state.sessionId = result.sessionId;
         if (result.success) return result;
-        throw new Error(result.error || 'Request failed');
+        throw new Error(result.message || result.error || 'Request failed');
     } catch (error) {
         alert(`Error: ${error.message}`);
         return null;
@@ -105,6 +107,7 @@ document.getElementById('btn-1').onclick = async () => {
     
     setLoading(1, true);
     const res = await callAPI('classify', {
+        sessionId: state.sessionId,
         company: state.company,
         forces: state.forces,
         conversationHistory: state.history
@@ -112,6 +115,7 @@ document.getElementById('btn-1').onclick = async () => {
     setLoading(1, false);
 
     if (res) {
+        state.sessionId = res.sessionId;
         state.classification = res.data;
         state.history = res.history;
         showResult(res.data);
@@ -126,6 +130,7 @@ document.getElementById('btn-2').onclick = async () => {
 
     setLoading(2, true);
     const res = await callAPI('axes', {
+        sessionId: state.sessionId,
         company: state.company,
         classification: state.classification,
         conversationHistory: state.history
@@ -144,6 +149,7 @@ document.getElementById('btn-2').onclick = async () => {
 document.getElementById('btn-3').onclick = async () => {
     setLoading(3, true);
     const res = await callAPI('scenarios', {
+        sessionId: state.sessionId,
         company: state.company,
         axes: state.axes,
         forces: state.forces,
@@ -166,6 +172,7 @@ document.getElementById('btn-4').onclick = async () => {
     
     setLoading(4, true);
     const res = await callAPI('windtunnel', {
+        sessionId: state.sessionId,
         company: state.company,
         scenarios: state.scenarios.scenarios,
         strategicOptions: options,
@@ -185,6 +192,7 @@ document.getElementById('btn-4').onclick = async () => {
 document.getElementById('btn-5').onclick = async () => {
     setLoading(5, true);
     const res = await callAPI('report', {
+        sessionId: state.sessionId,
         workshopState: {
             company: state.company,
             classification: state.classification,

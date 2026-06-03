@@ -26,6 +26,22 @@ const workshopAnalysisSchema = new mongoose.Schema(
       default: false
     },
 
+    status: {
+      type: String,
+      enum: ['pending', 'completed', 'failed'],
+      default: 'pending'
+    },
+
+    lastError: {
+      type: String,
+      default: null
+    },
+
+    failedAt: {
+      type: Date,
+      default: null
+    },
+
     // Data storage from each step
     company: mongoose.Schema.Types.Mixed,
     forces: [mongoose.Schema.Types.Mixed],

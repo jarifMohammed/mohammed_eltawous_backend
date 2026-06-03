@@ -9,30 +9,62 @@ import subscriptionService from '../subscription/subscription.service.js';
 // STEP 1: Classify Forces (COSTS 1 CREDIT)
 export const classifyForces = async (req, res, next) => {
   try {
-    const userId = req.user.userId;
-    const { company, forces, conversationHistory } = req.body;
+    const userId = req.user.userId || req.user.id;
+    const { sessionId: requestedSessionId, company, forces, conversationHistory } = req.body;
 
-    // Check if user has credits
-    const subscription = await subscriptionService.getSubscription(userId);
-    if (subscription.availableCredits < 1) {
-      return res.status(402).json({
+    if (!userId) {
+      return res.status(401).json({
         success: false,
-        message: 'Insufficient credits to start new analysis',
-        availableCredits: subscription.availableCredits,
-        requiredCredits: 1
+        message: 'Invalid user token'
       });
     }
 
-    // Create workshop session
-    const sessionId = uuidv4();
-    const workshopAnalysis = await WorkshopAnalysis.create({
-      userId,
-      sessionId,
-      company,
-      forces,
-      creditsCost: 1,
-      creditsDeducted: false
-    });
+    let sessionId = requestedSessionId;
+    let workshopAnalysis = null;
+
+    if (sessionId) {
+      workshopAnalysis = await WorkshopAnalysis.findOne({ sessionId, userId });
+      if (!workshopAnalysis) {
+        return res.status(404).json({
+          success: false,
+          message: 'Workshop session not found'
+        });
+      }
+
+      workshopAnalysis.company = company;
+      workshopAnalysis.forces = forces;
+      workshopAnalysis.status = 'pending';
+      workshopAnalysis.lastError = null;
+      workshopAnalysis.failedAt = null;
+      workshopAnalysis.lastActivityAt = new Date();
+      await workshopAnalysis.save();
+    } else {
+      sessionId = uuidv4();
+      workshopAnalysis = await WorkshopAnalysis.create({
+        userId,
+        sessionId,
+        company,
+        forces,
+        creditsCost: 1,
+        creditsDeducted: false,
+        status: 'pending',
+        lastError: null
+      });
+    }
+
+    // Check if user has credits. Retrying a previously charged session should not charge again.
+    if (!workshopAnalysis.creditsDeducted) {
+      const subscription = await subscriptionService.getSubscription(userId);
+      if (subscription.availableCredits < 1) {
+        return res.status(402).json({
+          success: false,
+          message: 'Insufficient credits to start new analysis',
+          availableCredits: subscription.availableCredits,
+          requiredCredits: 1,
+          sessionId
+        });
+      }
+    }
 
     const sharedContext =
       "Detailed Company context: " + JSON.stringify(company) + "\n\n" +
@@ -48,12 +80,35 @@ export const classifyForces = async (req, res, next) => {
       "Return JSON exactly matching this format: { \"predetermined\": [], \"uncertainties\": [] }.\n" +
       "CRITICAL: Do not omit any forces. If a force is provided in the input, it must appear in exactly one of the two categories above.";
 
-    const result = await callClaudeJSON(conversationHistory, specificPrompt, 0.1, 4096, MODELS.SONNET, sharedContext);
+    let result;
+    try {
+      result = await callClaudeJSON(conversationHistory, specificPrompt, 0.1, 4096, MODELS.SONNET, sharedContext);
+    } catch (error) {
+      workshopAnalysis.status = 'failed';
+      workshopAnalysis.lastError = error.message;
+      workshopAnalysis.failedAt = new Date();
+      workshopAnalysis.lastActivityAt = new Date();
+      await workshopAnalysis.save();
+
+      return res.status(502).json({
+        success: false,
+        message: 'AI returned a response that could not be parsed. Retry with the same sessionId to update this saved attempt.',
+        error: error.message,
+        sessionId
+      });
+    }
 
     // Deduct credit AFTER successful processing
-    await deductCreditsAfterSuccess(workshopAnalysis._id, userId, 1);
-    workshopAnalysis.creditsDeducted = true;
+    if (!workshopAnalysis.creditsDeducted) {
+      await deductCreditsAfterSuccess(workshopAnalysis._id, userId, 1);
+      workshopAnalysis.creditsDeducted = true;
+    }
+
     workshopAnalysis.classification = result;
+    workshopAnalysis.status = 'completed';
+    workshopAnalysis.lastError = null;
+    workshopAnalysis.failedAt = null;
+    workshopAnalysis.lastActivityAt = new Date();
     await workshopAnalysis.save();
 
     // Get updated subscription
@@ -432,7 +487,7 @@ export const getWorkshopHistory = async (req, res, next) => {
       .sort({ updatedAt: -1 })
       .limit(parseInt(limit))
       .select(
-        'sessionId company forces classification axes scenarios windTunnelResults creditsCost creditsDeducted report pdfUrl pdfFileName pdfGeneratedAt startedAt completedAt lastActivityAt createdAt updatedAt'
+        'sessionId company forces classification axes scenarios windTunnelResults creditsCost creditsDeducted status lastError failedAt report pdfUrl pdfFileName pdfGeneratedAt startedAt completedAt lastActivityAt createdAt updatedAt'
       );
 
     res.status(200).json({
