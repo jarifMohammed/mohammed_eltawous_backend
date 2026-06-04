@@ -20,9 +20,239 @@
     {
       "key": "sessionId",
       "value": "PASTE_SESSION_ID_FROM_CLASSIFY"
+    },
+    {
+      "key": "adminAccessToken",
+      "value": "PASTE_ADMIN_ACCESS_TOKEN_HERE"
+    },
+    {
+      "key": "userId",
+      "value": "PASTE_USER_ID_FROM_GET_ALL_USERS"
     }
   ],
   "item": [
+    {
+      "name": "Admin - Users & Payments",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/admin/all?page=1&limit=20&search=ahmed&role=user&isActive=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "admin",
+                "all?page=1&limit=20&search=ahmed&role=user&isActive=true"
+              ]
+            },
+            "description": "Admin-only endpoint. Returns safe user fields with subscription summary. Optional query params: page, limit, search, role, isActive, isVerified."
+          },
+          "response": [
+            {
+              "name": "Example response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/users/admin/all?page=1&limit=20&search=ahmed&role=user&isActive=true"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"users\": [\n      {\n        \"_id\": \"665f1234567890abcdef1001\",\n        \"name\": \"Ahmed Khan\",\n        \"email\": \"ahmed@example.com\",\n        \"phone\": \"+971500000000\",\n        \"role\": \"user\",\n        \"isVerified\": true,\n        \"isActive\": true,\n        \"imageLink\": null,\n        \"subscriptionId\": {\n          \"_id\": \"665f1234567890abcdef2001\",\n          \"currentTier\": \"starter\",\n          \"totalCredits\": 3,\n          \"usedCredits\": 1,\n          \"availableCredits\": 2,\n          \"isActive\": true,\n          \"lastPaymentAmount\": 49900,\n          \"lastPaymentCurrency\": \"aed\",\n          \"paymentVerifiedAt\": \"2026-06-02T10:00:00.000Z\"\n        },\n        \"totalCreditsEverUsed\": 1,\n        \"lastPurchaseAt\": \"2026-06-02T10:00:00.000Z\",\n        \"createdAt\": \"2026-05-20T09:30:00.000Z\",\n        \"updatedAt\": \"2026-06-02T10:00:00.000Z\"\n      }\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 20,\n      \"total\": 1,\n      \"totalPages\": 1\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/admin/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "admin",
+                "{{userId}}"
+              ]
+            },
+            "description": "Admin-only endpoint. Returns one user with subscription details. Copy an _id from Get All Users into the userId collection variable."
+          },
+          "response": [
+            {
+              "name": "Example response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/users/admin/{{userId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"665f1234567890abcdef1001\",\n    \"name\": \"Ahmed Khan\",\n    \"email\": \"ahmed@example.com\",\n    \"phone\": \"+971500000000\",\n    \"bio\": null,\n    \"jobTitle\": \"Founder\",\n    \"address\": \"Dubai, UAE\",\n    \"role\": \"user\",\n    \"isVerified\": true,\n    \"isActive\": true,\n    \"imageLink\": null,\n    \"subscriptionId\": {\n      \"_id\": \"665f1234567890abcdef2001\",\n      \"currentTier\": \"starter\",\n      \"totalCredits\": 3,\n      \"usedCredits\": 1,\n      \"availableCredits\": 2,\n      \"isActive\": true,\n      \"stripeCustomerId\": \"cus_test123\",\n      \"lastPaymentId\": \"cs_test_xxx\",\n      \"lastPaymentStatus\": \"succeeded\",\n      \"lastPaymentAmount\": 49900,\n      \"lastPaymentCurrency\": \"aed\",\n      \"paymentVerifiedAt\": \"2026-06-02T10:00:00.000Z\",\n      \"lastCronCheckAt\": \"2026-06-02T10:05:00.000Z\"\n    },\n    \"totalCreditsEverUsed\": 1,\n    \"lastPurchaseAt\": \"2026-06-02T10:00:00.000Z\",\n    \"createdAt\": \"2026-05-20T09:30:00.000Z\",\n    \"updatedAt\": \"2026-06-02T10:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Payments",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subscription/admin/payments?page=1&limit=20&status=succeeded&tier=starter&search=ahmed",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subscription",
+                "admin",
+                "payments?page=1&limit=20&status=succeeded&tier=starter&search=ahmed"
+              ]
+            },
+            "description": "Admin-only endpoint. Returns all saved Payment records with user info populated. Optional query params: page, limit, status, tier, userId, search."
+          },
+          "response": [
+            {
+              "name": "Example response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/subscription/admin/payments?page=1&limit=20&status=succeeded&tier=starter&search=ahmed"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"payments\": [\n      {\n        \"_id\": \"665f1234567890abcdef3001\",\n        \"userId\": {\n          \"_id\": \"665f1234567890abcdef1001\",\n          \"name\": \"Ahmed Khan\",\n          \"email\": \"ahmed@example.com\",\n          \"phone\": \"+971500000000\",\n          \"role\": \"user\",\n          \"isActive\": true,\n          \"isVerified\": true\n        },\n        \"stripeCheckoutSessionId\": \"cs_test_xxx\",\n        \"tier\": \"starter\",\n        \"creditsAdded\": 3,\n        \"amount\": 49900,\n        \"currency\": \"aed\",\n        \"status\": \"succeeded\",\n        \"verificationAttempts\": 1,\n        \"nextCheckAt\": \"2026-06-02T10:05:00.000Z\",\n        \"verifiedAt\": \"2026-06-02T10:00:00.000Z\",\n        \"failureReason\": null,\n        \"createdAt\": \"2026-06-02T09:55:00.000Z\",\n        \"updatedAt\": \"2026-06-02T10:00:00.000Z\"\n      }\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 20,\n      \"total\": 1,\n      \"totalPages\": 1\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Payments By User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subscription/admin/users/{{userId}}/payments?page=1&limit=20&status=succeeded",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subscription",
+                "admin",
+                "users",
+                "{{userId}}",
+                "payments?page=1&limit=20&status=succeeded"
+              ]
+            },
+            "description": "Admin-only endpoint. Returns all saved payments for one user. Optional query params: page, limit, status, tier."
+          },
+          "response": [
+            {
+              "name": "Example response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/subscription/admin/users/{{userId}}/payments?page=1&limit=20&status=succeeded"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"_id\": \"665f1234567890abcdef1001\",\n      \"name\": \"Ahmed Khan\",\n      \"email\": \"ahmed@example.com\",\n      \"phone\": \"+971500000000\",\n      \"role\": \"user\",\n      \"isActive\": true,\n      \"isVerified\": true\n    },\n    \"payments\": [\n      {\n        \"_id\": \"665f1234567890abcdef3001\",\n        \"userId\": \"665f1234567890abcdef1001\",\n        \"stripeCheckoutSessionId\": \"cs_test_xxx\",\n        \"tier\": \"starter\",\n        \"creditsAdded\": 3,\n        \"amount\": 49900,\n        \"currency\": \"aed\",\n        \"status\": \"succeeded\",\n        \"verificationAttempts\": 1,\n        \"nextCheckAt\": \"2026-06-02T10:05:00.000Z\",\n        \"verifiedAt\": \"2026-06-02T10:00:00.000Z\",\n        \"failureReason\": null,\n        \"createdAt\": \"2026-06-02T09:55:00.000Z\",\n        \"updatedAt\": \"2026-06-02T10:00:00.000Z\"\n      }\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 20,\n      \"total\": 1,\n      \"totalPages\": 1\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Payment Summary",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subscription/admin/payment-summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subscription",
+                "admin",
+                "payment-summary"
+              ]
+            },
+            "description": "Admin-only endpoint. Returns payment counts by status and succeeded revenue grouped by currency."
+          },
+          "response": [
+            {
+              "name": "Example response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/subscription/admin/payment-summary"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"totalPayments\": 3,\n    \"byStatus\": {\n      \"succeeded\": {\n        \"count\": 2,\n        \"totalAmount\": 149800,\n        \"totalCredits\": 6\n      },\n      \"pending\": {\n        \"count\": 1,\n        \"totalAmount\": 99900,\n        \"totalCredits\": 8\n      }\n    },\n    \"revenueByCurrency\": [\n      {\n        \"currency\": \"aed\",\n        \"totalRevenue\": 149800,\n        \"totalPayments\": 2,\n        \"totalCreditsSold\": 6\n      }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "Subscription & Payment",
       "item": [

@@ -43,6 +43,36 @@ export const getPaymentStatus = catchAsync(async (req, res, next) => {
   });
 });
 
+export const getAllPaymentsForAdmin = catchAsync(async (req, res, next) => {
+  const payments = await paymentService.getAllPaymentsForAdmin(req.query);
+
+  res.status(200).json({
+    success: true,
+    data: payments
+  });
+});
+
+export const getPaymentsByUserForAdmin = catchAsync(async (req, res, next) => {
+  const payments = await paymentService.getPaymentsByUserForAdmin(
+    req.params.userId,
+    req.query
+  );
+
+  res.status(200).json({
+    success: true,
+    data: payments
+  });
+});
+
+export const getPaymentSummaryForAdmin = catchAsync(async (req, res, next) => {
+  const summary = await paymentService.getPaymentSummaryForAdmin();
+
+  res.status(200).json({
+    success: true,
+    data: summary
+  });
+});
+
 // Webhook endpoint for Stripe (optional - for future use)
 export const handleStripeWebhook = catchAsync(async (req, res, next) => {
   // This is optional since we're using CRON polling

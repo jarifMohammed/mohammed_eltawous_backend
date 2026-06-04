@@ -4,6 +4,7 @@ import workshopRoutes from '../../entities/workshop/workshop.routes.js';
 import authRoutes from '../../entities/auth/auth.routes.js';
 import subscriptionRoutes from '../../entities/subscription/subscription.routes.js';
 import mailSendRoutes from '../../entities/mailSend/mailSend.router.js';
+import userRoutes from '../../entities/user/user.router.js';
 
 const router = Router();
 
@@ -23,6 +24,10 @@ const moduleRouter = [
   {
     path: '/send-mail',
     router: mailSendRoutes
+  },
+  {
+    path: '/users',
+    router: userRoutes
   }
 ];
 

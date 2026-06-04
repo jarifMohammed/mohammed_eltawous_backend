@@ -4,6 +4,21 @@ import User from '../auth/auth.model.js';
 import stripeService from '../../lib/stripeService.js';
 import subscriptionService from './subscription.service.js';
 import { PRICING_PLANS, STRIPE_CONFIG } from '../../core/config/pricing.js';
+import mongoose from 'mongoose';
+
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+
+const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const getPagination = (query = {}) => {
+  const page = Math.max(parseInt(query.page, 10) || 1, 1);
+  const requestedLimit = Math.max(parseInt(query.limit, 10) || DEFAULT_LIMIT, 1);
+  const limit = Math.min(requestedLimit, MAX_LIMIT);
+  const skip = (page - 1) * limit;
+
+  return { page, limit, skip };
+};
 
 class PaymentService {
   
@@ -186,6 +201,158 @@ class PaymentService {
       failureReason: payment.failureReason,
       creditsAdded: payment.creditsAdded
     };
+  }
+
+  async getAllPaymentsForAdmin(query = {}) {
+    const { page, limit, skip } = getPagination(query);
+    const filter = await this.buildAdminPaymentFilter(query);
+
+    const [payments, total] = await Promise.all([
+      Payment.find(filter)
+        .populate('userId', 'name email phone role isActive isVerified')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Payment.countDocuments(filter)
+    ]);
+
+    return {
+      payments,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  }
+
+  async getPaymentsByUserForAdmin(userId, query = {}) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error('Invalid user id');
+    }
+
+    const user = await User.findById(userId)
+      .select('_id name email phone role isActive isVerified')
+      .lean();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const { page, limit, skip } = getPagination(query);
+    const filter = { userId };
+
+    if (query.status) filter.status = query.status;
+    if (query.tier) filter.tier = query.tier;
+
+    const [payments, total] = await Promise.all([
+      Payment.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Payment.countDocuments(filter)
+    ]);
+
+    return {
+      user,
+      payments,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  }
+
+  async getPaymentSummaryForAdmin() {
+    const [statusSummary, revenueSummary] = await Promise.all([
+      Payment.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+            totalAmount: { $sum: '$amount' },
+            totalCredits: { $sum: '$creditsAdded' }
+          }
+        }
+      ]),
+      Payment.aggregate([
+        { $match: { status: 'succeeded' } },
+        {
+          $group: {
+            _id: '$currency',
+            totalRevenue: { $sum: '$amount' },
+            totalPayments: { $sum: 1 },
+            totalCreditsSold: { $sum: '$creditsAdded' }
+          }
+        }
+      ])
+    ]);
+
+    const byStatus = statusSummary.reduce((acc, item) => {
+      acc[item._id] = {
+        count: item.count,
+        totalAmount: item.totalAmount,
+        totalCredits: item.totalCredits
+      };
+      return acc;
+    }, {});
+
+    return {
+      totalPayments: statusSummary.reduce((sum, item) => sum + item.count, 0),
+      byStatus,
+      revenueByCurrency: revenueSummary.map((item) => ({
+        currency: item._id,
+        totalRevenue: item.totalRevenue,
+        totalPayments: item.totalPayments,
+        totalCreditsSold: item.totalCreditsSold
+      }))
+    };
+  }
+
+  async buildAdminPaymentFilter(query = {}) {
+    const filter = {};
+
+    if (query.status) filter.status = query.status;
+    if (query.tier) filter.tier = query.tier;
+
+    if (query.userId) {
+      if (!mongoose.Types.ObjectId.isValid(query.userId)) {
+        throw new Error('Invalid user id');
+      }
+      filter.userId = query.userId;
+    }
+
+    if (query.search) {
+      const searchRegex = new RegExp(escapeRegex(query.search.trim()), 'i');
+      const matchingUsers = await User.find({
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex },
+          { phone: searchRegex }
+        ]
+      })
+        .select('_id')
+        .lean();
+
+      const matchingUserIds = matchingUsers.map((user) => user._id);
+      if (filter.userId) {
+        const selectedUserId = filter.userId.toString();
+        filter.userId = matchingUserIds.some(
+          (userId) => userId.toString() === selectedUserId
+        )
+          ? filter.userId
+          : { $in: [] };
+      } else {
+        filter.userId = { $in: matchingUserIds };
+      }
+    }
+
+    return filter;
   }
 
   // Helper: Get price data
