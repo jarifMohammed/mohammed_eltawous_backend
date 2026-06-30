@@ -38,7 +38,7 @@ export const sendInviteLink = async (payload, email) => {
   const token = crypto.randomBytes(10).toString('hex');
 
   // Frontend URL
-  const inviteLink = `${process.env.FRONTEND_URL}/invite/${token}`;
+  const inviteLink = `${process.env.FRONTEND_URL}/dashboard/new-scenario/invite/${token}`;
 
   // Check existing invite
   let invite = await Invite.findOne({
