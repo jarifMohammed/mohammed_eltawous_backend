@@ -34,30 +34,43 @@ export const sendInviteLink = async (payload, email) => {
     throw new Error('Only subscribers can send invite links.');
   }
 
+  // Validate payload
+  if (!payload.email) {
+    throw new Error('Invite email is required.');
+  }
+
+  if (!payload.workshopAnalysisId) {
+    throw new Error('Workshop Analysis Id is required.');
+  }
+
   // Generate secure token
   const token = crypto.randomBytes(10).toString('hex');
 
-  // Frontend URL
-  const inviteLink = `${process.env.FRONTEND_URL}/dashboard/new-scenario/invite/${token}`;
+  // Invite Link
+  const inviteLink = `${process.env.FRONTEND_URL}/invite/${token}`;
 
   // Check existing invite
   let invite = await Invite.findOne({
     ownerId: user._id,
-    inviteEmail: payload.email
+    inviteEmail: payload.email,
+    workshopAnalysisId: payload.workshopAnalysisId
   });
 
   if (invite) {
     invite.token = token;
+    invite.updatedAt = new Date();
+
     await invite.save();
   } else {
     invite = await Invite.create({
       ownerId: user._id,
+      workshopAnalysisId: payload.workshopAnalysisId,
       inviteEmail: payload.email,
       token
     });
   }
 
-  // Send email
+  // Send Email
   await sendEmail({
     to: payload.email,
     subject: 'Invitation Link',
@@ -65,8 +78,6 @@ export const sendInviteLink = async (payload, email) => {
   });
 
   return {
-    success: true,
-    message: 'Invite link sent successfully.',
     inviteId: invite._id,
     inviteLink
   };
