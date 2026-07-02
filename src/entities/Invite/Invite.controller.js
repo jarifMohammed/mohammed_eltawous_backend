@@ -17,7 +17,7 @@ export const sendInvite = async (req, res) => {
 
 export const getInviteLink = async (req, res) => {
   const { token } = req.params;
-  const invite = await Invite.findOne({ token });
+  const invite = await Invite.findOne({ token }).populate('workshopAnalysisId');
 
   if (!invite) {
     return sendResponse(res, {

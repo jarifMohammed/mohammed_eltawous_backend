@@ -8,6 +8,11 @@ const InviteSchema = new Schema(
       required: true
     },
 
+    workshopAnalysisId: {
+      type: Schema.Types.ObjectId,
+      ref: 'WorkshopAnalysis'
+    },
+
     inviteEmail: {
       type: String,
       required: true,
