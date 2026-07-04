@@ -235,6 +235,41 @@ const validateWindTunnel = (result) => {
   return true;
 };
 
+// CREATE SESSION (no credits, no AI — just gets a sessionId for invites)
+export const createSession = async (req, res, next) => {
+  try {
+    const userId = req.user.userId || req.user.id;
+    const { company, forces } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid user token'
+      });
+    }
+
+    const sessionId = uuidv4();
+    const workshopAnalysis = await WorkshopAnalysis.create({
+      userId,
+      sessionId,
+      company: company || null,
+      forces: forces || [],
+      creditsCost: 1,
+      creditsDeducted: false,
+      status: 'pending'
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Workshop session created.',
+      sessionId,
+      workshopId: workshopAnalysis._id
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // STEP 1: Classify Forces (COSTS 1 CREDIT)
 export const classifyForces = async (req, res, next) => {
   try {

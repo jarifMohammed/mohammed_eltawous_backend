@@ -12,6 +12,7 @@ router.get(
   workshopController.getWorkshopBySession
 );
 
+router.post('/create', authenticate, workshopController.createSession);
 router.post('/classify', authenticate, workshopController.classifyForces);
 router.post('/axes', authenticate, workshopController.selectAxes);
 router.post('/scenarios', authenticate, workshopController.buildScenarios);
