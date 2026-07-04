@@ -51,6 +51,11 @@ const workshopAnalysisSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Invite'
         },
+        email: {
+          type: String,
+          lowercase: true,
+          trim: true
+        },
         forces: [String],
         addedAt: {
           type: Date,

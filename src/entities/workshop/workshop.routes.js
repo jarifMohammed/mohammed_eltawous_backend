@@ -19,5 +19,6 @@ router.post('/windtunnel', authenticate, workshopController.runWindTunnel);
 router.post('/report', authenticate, workshopController.generateReport);
 router.post('/report/download', authenticate, workshopController.downloadPDF);
 router.post('/guest/:token', workshopController.addedByInvitedUser);
+router.delete('/guest/:token', workshopController.deleteInvitedUserFactor);
 
 export default router;
