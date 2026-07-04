@@ -880,9 +880,7 @@ export const getWorkshopBySession = async (req, res, next) => {
 export const addedByInvitedUser = async (req, res, next) => {
   try {
     const { token } = req.params;
-    console.log(token);
     const { factor } = req.body;
-    console.log(factor);
 
     if (!factor) {
       throw new Error('Factor is required.');
@@ -902,17 +900,70 @@ export const addedByInvitedUser = async (req, res, next) => {
       throw new Error('Workshop analysis not found.');
     }
 
-    // Push object matching schema
-    workshop.guestAdd.push({
-      inviteId: invite._id,
-      forces: [factor]
-    });
+    // Check if guest entry already exists
+    const guestEntryIndex = workshop.guestAdd.findIndex(
+      (entry) => entry.inviteId.toString() === invite._id.toString()
+    );
+
+    if (guestEntryIndex > -1) {
+      if (!workshop.guestAdd[guestEntryIndex].forces.includes(factor)) {
+        workshop.guestAdd[guestEntryIndex].forces.push(factor);
+      }
+    } else {
+      workshop.guestAdd.push({
+        inviteId: invite._id,
+        email: invite.inviteEmail,
+        forces: [factor]
+      });
+    }
 
     await workshop.save();
 
     return res.status(200).json({
       success: true,
       message: 'Moving factor added successfully.',
+      data: workshop.guestAdd
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteInvitedUserFactor = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { factor } = req.body;
+
+    if (!factor) {
+      throw new Error('Factor is required for deletion.');
+    }
+
+    const invite = await Invite.findOne({ token });
+    if (!invite) {
+      throw new Error('Invalid invitation link.');
+    }
+
+    const workshop = await WorkshopAnalysis.findById(invite.workshopAnalysisId);
+    if (!workshop) {
+      throw new Error('Workshop analysis not found.');
+    }
+
+    const guestEntryIndex = workshop.guestAdd.findIndex(
+      (entry) => entry.inviteId.toString() === invite._id.toString()
+    );
+
+    if (guestEntryIndex > -1) {
+      workshop.guestAdd[guestEntryIndex].forces = workshop.guestAdd[guestEntryIndex].forces.filter(
+        (f) => f !== factor
+      );
+      await workshop.save();
+    } else {
+      throw new Error('Guest entry not found.');
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Factor deleted successfully.',
       data: workshop.guestAdd
     });
   } catch (error) {

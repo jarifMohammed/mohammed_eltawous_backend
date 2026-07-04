@@ -5,6 +5,7 @@ import Invite from './Invite.model.js';
 import sendEmail from '../../lib/sendEmail.js';
 import { InviteLinkTemplate } from '../../lib/InviteLinkTemplate.js';
 import User from '../auth/auth.model.js';
+import WorkshopAnalysis from '../workshop/workshopAnalysis.model.js';
 
 export const sendInviteLink = async (payload, email) => {
   // Logged in user
@@ -39,13 +40,15 @@ export const sendInviteLink = async (payload, email) => {
     throw new Error('Invite email is required.');
   }
 
-  if (!payload.workshopAnalysisId) {
-    throw new Error('Please create a scenario before inviting guests.');
+  if (!payload.sessionId) {
+    throw new Error('Please create a scenario before inviting guests. Session ID is required.');
   }
 
-  if (!payload.workshopAnalysisId) {
-    throw new Error('Workshop Analysis Id is required.');
+  const workshop = await WorkshopAnalysis.findOne({ sessionId: payload.sessionId, userId: user._id });
+  if (!workshop) {
+    throw new Error('Workshop session not found or you do not have permission.');
   }
+  const workshopAnalysisId = workshop._id;
 
   // Generate secure token
   const token = crypto.randomBytes(10).toString('hex');
@@ -57,7 +60,7 @@ export const sendInviteLink = async (payload, email) => {
   let invite = await Invite.findOne({
     ownerId: user._id,
     inviteEmail: payload.email,
-    workshopAnalysisId: payload.workshopAnalysisId
+    workshopAnalysisId: workshopAnalysisId
   });
 
   if (invite) {
@@ -68,7 +71,7 @@ export const sendInviteLink = async (payload, email) => {
   } else {
     invite = await Invite.create({
       ownerId: user._id,
-      workshopAnalysisId: payload.workshopAnalysisId,
+      workshopAnalysisId: workshopAnalysisId,
       inviteEmail: payload.email,
       token
     });
