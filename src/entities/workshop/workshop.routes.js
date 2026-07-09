@@ -21,6 +21,7 @@ router.post('/report', authenticate, workshopController.generateReport);
 router.post('/report/download', authenticate, workshopController.downloadPDF);
 router.post('/guest/:token', workshopController.addedByInvitedUser);
 router.delete('/guest/:token', workshopController.deleteInvitedUserFactor);
+router.put('/guest/factor/:sessionId', authenticate, workshopController.editInvitedUserFactor);
 router.get(
   '/all/:sessionId',
   // authenticate,

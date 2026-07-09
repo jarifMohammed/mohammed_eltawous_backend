@@ -6,6 +6,8 @@ import * as userController from './user.controller.js';
 const router = express.Router();
 const adminAuth = auth(USER_ROLE.admin);
 
+router.get('/dashboard', auth(), userController.getSubscriberDashboard);
+
 router.get('/admin/all', adminAuth, userController.getAllUsers);
 router.get('/admin/:userId', adminAuth, userController.getUserById);
 

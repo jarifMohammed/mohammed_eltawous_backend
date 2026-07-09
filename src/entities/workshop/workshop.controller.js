@@ -1028,3 +1028,54 @@ export const getAllWorkshopBySession = async (req, res, next) => {
     next(error);
   }
 };
+
+export const editInvitedUserFactor = async (req, res, next) => {
+  try {
+    const userId = req.user.userId || req.user.id;
+    const { sessionId } = req.params;
+    const { inviteId, email, oldFactor, newFactor } = req.body;
+
+    if (!oldFactor || !newFactor) {
+      return res.status(400).json({ success: false, message: 'oldFactor and newFactor are required.' });
+    }
+
+    if (!inviteId && !email) {
+      return res.status(400).json({ success: false, message: 'Either inviteId or email is required.' });
+    }
+
+    const workshop = await WorkshopAnalysis.findOne({ sessionId, userId });
+    if (!workshop) {
+      return res.status(404).json({ success: false, message: 'Workshop session not found or unauthorized' });
+    }
+
+    const guestEntryIndex = workshop.guestAdd.findIndex(
+      (entry) => (inviteId && entry.inviteId && entry.inviteId.toString() === inviteId.toString()) || 
+                 (email && entry.email && entry.email.toLowerCase() === email.toLowerCase())
+    );
+
+    if (guestEntryIndex === -1) {
+      return res.status(404).json({ success: false, message: 'Guest entry not found.' });
+    }
+
+    const factorIndex = workshop.guestAdd[guestEntryIndex].forces.indexOf(oldFactor);
+    if (factorIndex === -1) {
+      return res.status(404).json({ success: false, message: 'Factor not found in guest entry.' });
+    }
+
+    // Update the factor
+    workshop.guestAdd[guestEntryIndex].forces[factorIndex] = newFactor;
+    
+    // Mark the array as modified so Mongoose saves it correctly
+    workshop.markModified('guestAdd');
+    await workshop.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Factor updated successfully.',
+      data: workshop.guestAdd
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
