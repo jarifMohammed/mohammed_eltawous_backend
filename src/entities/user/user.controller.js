@@ -18,3 +18,14 @@ export const getUserById = catchAsync(async (req, res) => {
     data: user
   });
 });
+
+export const getSubscriberDashboard = catchAsync(async (req, res) => {
+  const userId = req.user.userId || req.user.id;
+  const dashboardData = await userService.getSubscriberDashboard(userId);
+
+  res.status(200).json({
+    success: true,
+    data: dashboardData
+  });
+});
+

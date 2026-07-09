@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
 import User from '../auth/auth.model.js';
+import Invite from '../Invite/Invite.model.js';
+import Subscription from '../subscription/subscription.model.js';
+import Payment from '../subscription/payment.model.js';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -94,6 +97,45 @@ class UserService {
     }
 
     return user;
+  }
+
+  async getSubscriberDashboard(userId) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error('Invalid user id');
+    }
+
+    const [subscription, invites, payments] = await Promise.all([
+      Subscription.findOne({ userId }).lean(),
+      Invite.find({ ownerId: userId }).select('inviteEmail createdAt').sort({ createdAt: -1 }).lean(),
+      Payment.find({ userId }).sort({ createdAt: -1 }).lean()
+    ]);
+
+    // Extract unique emails
+    const inviteesSet = new Set(invites.map(inv => inv.inviteEmail));
+    const invitees = Array.from(inviteesSet);
+
+    return {
+      inviteesCount: invitees.length,
+      invitees,
+      subscription: subscription ? {
+        tier: subscription.currentTier,
+        isActive: subscription.isActive,
+        availableCredits: subscription.availableCredits,
+        totalCredits: subscription.totalCredits,
+        usedCredits: subscription.usedCredits,
+        // Credits do not have an expiration date in the current schema
+        expiryDate: null 
+      } : null,
+      paymentHistory: payments.map(p => ({
+        paymentId: p._id,
+        tier: p.tier,
+        amount: p.amount,
+        creditsAdded: p.creditsAdded,
+        currency: p.currency,
+        status: p.status,
+        date: p.createdAt
+      }))
+    };
   }
 }
 
