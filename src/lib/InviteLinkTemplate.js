@@ -1,4 +1,8 @@
 export const InviteLinkTemplate = (inviteLink) => {
+  // Try to use BACKEND_URL, fallback to FRONTEND_URL or a generic path for the logo
+  const baseUrl = process.env.BACKEND_URL || process.env.FRONTEND_URL || '';
+  const logoUrl = `${baseUrl}/mohammed.png`;
+
   return `
   <!DOCTYPE html>
   <html lang="en">
@@ -7,8 +11,8 @@ export const InviteLinkTemplate = (inviteLink) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Invitation</title>
   </head>
-  <body style="margin:0;padding:0;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;background:#f4f6f9;">
+  <body style="margin:0;padding:0;background:#DEF0FA;font-family:Arial,Helvetica,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;background:#DEF0FA;">
           <tr>
               <td align="center">
                   <table width="600" cellpadding="0" cellspacing="0"
@@ -16,8 +20,9 @@ export const InviteLinkTemplate = (inviteLink) => {
 
                       <!-- Header -->
                       <tr>
-                          <td style="background:#2563eb;padding:30px;text-align:center;">
-                              <h1 style="margin:0;color:#ffffff;font-size:24px;">
+                          <td style="background:#ffffff;padding:30px;text-align:center;border-bottom: 4px solid #DEF0FA;">
+                              <img src="${logoUrl}" alt="Logo" style="max-height:60px;width:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto;" />
+                              <h1 style="margin:0;color:#2563eb;font-size:24px;">
                                   You're Invited!
                               </h1>
                           </td>
@@ -63,7 +68,7 @@ export const InviteLinkTemplate = (inviteLink) => {
                                   ${inviteLink}
                               </p>
 
-                              <hr style="margin:35px 0;border:none;border-top:1px solid #e5e7eb;" />
+                              <hr style="margin:35px 0;border:none;border-top:1px solid #DEF0FA;" />
 
                               <p style="font-size:13px;color:#777;line-height:1.6;">
                                   This invitation was sent specifically to you. Please do not share this link with others.
