@@ -1,7 +1,5 @@
 export const InviteLinkTemplate = (inviteLink) => {
-  // Try to use BACKEND_URL, fallback to FRONTEND_URL or a generic path for the logo
-  const baseUrl = process.env.BACKEND_URL || process.env.FRONTEND_URL || '';
-  const logoUrl = `${baseUrl}/mohammed.png`;
+  const logoUrl = 'https://i.ibb.co.com/DfVdzyLv/mohammed.png';
 
   return `
   <!DOCTYPE html>
