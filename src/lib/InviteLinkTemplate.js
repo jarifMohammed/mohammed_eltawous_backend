@@ -1,4 +1,4 @@
-export const InviteLinkTemplate = (inviteLink) => {
+export const InviteLinkTemplate = (inviteLink, senderEmail) => {
   const logoUrl = 'https://i.ibb.co.com/DfVdzyLv/mohammed.png';
 
   return `
@@ -35,7 +35,7 @@ export const InviteLinkTemplate = (inviteLink) => {
                               </p>
 
                               <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#555;">
-                                  You have been invited to access and edit shared information on our platform.
+                                  You have been invited by <strong>${senderEmail}</strong> to access and edit shared information on our platform.
                               </p>
 
                               <p style="margin:0 0 30px;font-size:15px;line-height:1.7;color:#555;">

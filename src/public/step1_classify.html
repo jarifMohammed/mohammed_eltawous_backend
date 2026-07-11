@@ -169,9 +169,15 @@
                     <label>Company Name</label>
                     <input type="text" id="companyName" value="AlWasl Capital">
                 </div>
-                <div class="field">
-                    <label>Horizon Year</label>
-                    <input type="text" id="horizonYear" value="2030">
+                <div class="field" style="display: flex; gap: 1rem; flex-direction: row; align-items: flex-end;">
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label>Horizon Month (Number)</label>
+                        <input type="number" id="horizonMonth" placeholder="e.g. 6">
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label>Horizon Year</label>
+                        <input type="text" id="horizonYear" value="2030">
+                    </div>
                 </div>
                 <div class="field full">
                     <label>Focal Strategic Question</label>
@@ -220,7 +226,8 @@ Local talent scarcity</textarea>
                 company: {
                     name: document.getElementById('companyName').value,
                     focalQuestion: document.getElementById('focalQuestion').value,
-                    horizonYear: document.getElementById('horizonYear').value
+                    horizonYear: document.getElementById('horizonYear').value,
+                    horizonMonth: document.getElementById('horizonMonth').value
                 },
                 forces: document.getElementById('forces').value.split('\n').filter(l => l.trim()),
                 conversationHistory: []

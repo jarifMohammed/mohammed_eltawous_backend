@@ -343,7 +343,9 @@ export const classifyForces = async (req, res, next) => {
       'Focal Strategic Question: ' +
       (company.focalQuestion || 'General strategy') +
       '\n' +
-      'Horizon Year: ' +
+      'Horizon: ' +
+      (company.horizonMonth ? company.horizonMonth + ' Months, ' : '') +
+      'Year ' +
       (company.horizonYear || '2030') +
       '\n\n' +
       'Task: Comprehensive Classification. Classify EVERY driving force provided in the Shared Context with respect to the Focal Question above.\n' +
@@ -540,7 +542,7 @@ export const buildScenarios = async (req, res, next) => {
         `Focal question: ${company.focalQuestion}\n\n` +
         `Task: Concise Scenario Construction. Generate 1 scenario for this quadrant (${q.comb}).\n` +
         `- Give it a vivid memorable name.\n` +
-        `- Write a concise but impactful 1-2 paragraph story of the world in ${company.horizonYear}.\n` +
+        `- Write a concise but impactful 1-2 paragraph story of the world in ${company.horizonMonth ? company.horizonMonth + ' Months, ' : ''}Year ${company.horizonYear}.\n` +
         `- Explain implications for ${company.name} (exactly 2 concise sentences).\n` +
         `- List 3-4 key early warning signposts.\n\n` +
         `Return JSON exactly matching this format: { "name": "string", "story": "string", "implications": "string", "signposts": ["string"] }`;
@@ -632,7 +634,9 @@ export const runWindTunnel = async (req, res, next) => {
       'Focal Question: ' +
       company.focalQuestion +
       '\n' +
-      'Horizon Year: ' +
+      'Horizon: ' +
+      (company.horizonMonth ? company.horizonMonth + ' Months, ' : '') +
+      'Year ' +
       company.horizonYear +
       '\n\n' +
       'Scenarios (names only): ' +
@@ -737,7 +741,7 @@ export const generateReport = async (req, res, next) => {
       `You are a premium strategy consultant (McKinsey/Shell style).\n` +
       `TASK: Generate a COMPREHENSIVE STRATEGIC REPORT for ${company.name} based on the provided workshop state.\n\n` +
       `FOCAL QUESTION: ${company.focalQuestion}\n` +
-      `HORIZON YEAR: ${company.horizonYear}\n\n` +
+      `HORIZON: ${company.horizonMonth ? company.horizonMonth + ' Months, ' : ''}Year ${company.horizonYear}\n\n` +
       `OUTPUT ONLY THE MARKDOWN CONTENT. NO JSON, NO PREAMBLE. USE ## FOR HEADERS.\n\n` +
       '1. Executive Summary\n2. Focal Question\n3. Key Uncertainties\n4. Scenarios\n5. Stress-Test Analysis\n6. Recommendations\n7. Signposts';
 

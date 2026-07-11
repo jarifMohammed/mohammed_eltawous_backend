@@ -127,6 +127,7 @@ document.getElementById('btn-1').onclick = async () => {
 document.getElementById('btn-2').onclick = async () => {
     state.company.focalQuestion = document.getElementById('focal-question').value;
     state.company.horizonYear = document.getElementById('horizon-year').value;
+    state.company.horizonMonth = document.getElementById('horizon-month').value;
 
     setLoading(2, true);
     const res = await callAPI('axes', {
