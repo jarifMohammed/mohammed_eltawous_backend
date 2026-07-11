@@ -3,11 +3,11 @@ import nodemailer from 'nodemailer';
 const sendEmail = async ({ to, subject, html }) => {
   try {
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+      port: process.env.SMTP_PORT || 465,
+      secure: true, // true for 465, false for other ports
       auth: {
-        user: process.env.EMAIL_ADDRESS,
+        user: process.env.EMAIL_ADDRESS, // e.g. support@secondsight.tech
         pass: process.env.EMAIL_PASSWORD
       },
       tls: {
@@ -16,7 +16,7 @@ const sendEmail = async ({ to, subject, html }) => {
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_ADDRESS,
+      from: `"Support" <support@secondsight.tech>`,
       to,
       subject,
       html

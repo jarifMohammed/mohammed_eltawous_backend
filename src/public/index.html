@@ -295,9 +295,15 @@
                 <label>Focal Question</label>
                 <input type="text" id="focal-question" placeholder="e.g. Should we pivot to digital?">
             </div>
-            <div class="form-group">
-                <label>Horizon Year</label>
-                <input type="number" id="horizon-year" value="2030">
+            <div class="form-group" style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label>Horizon Month (Number)</label>
+                    <input type="number" id="horizon-month" placeholder="e.g. 3">
+                </div>
+                <div style="flex: 1;">
+                    <label>Horizon Year</label>
+                    <input type="number" id="horizon-year" value="2030">
+                </div>
             </div>
             <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">The AI has identified the uncertainties from Step 1. Ready to select axes.</p>
             <button class="btn" id="btn-2">

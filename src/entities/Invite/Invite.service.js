@@ -81,7 +81,7 @@ export const sendInviteLink = async (payload, email) => {
   await sendEmail({
     to: payload.email,
     subject: 'Invitation Link',
-    html: InviteLinkTemplate(inviteLink)
+    html: InviteLinkTemplate(inviteLink, user.email)
   });
 
   return {
