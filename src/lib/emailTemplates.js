@@ -93,11 +93,10 @@ export const getConflictAfterPaymentTemplate = ({
       <ul>
         <li><strong>Session ID:</strong> ${sessionId}</li>
         <li><strong>Payment Intent ID:</strong> ${paymentIntentId}</li>
-        ${
-          refundAmount
-            ? `<li><strong>Refund Amount:</strong> $${(refundAmount / 100).toFixed(2)}</li>`
-            : ''
-        }
+        ${refundAmount
+      ? `<li><strong>Refund Amount:</strong> $${(refundAmount / 100).toFixed(2)}</li>`
+      : ''
+    }
         <li><strong>Refund Status:</strong> Refund automatically processed</li>
       </ul>
 
