@@ -1,7 +1,7 @@
 export const InviteLinkTemplate = (inviteLink, senderEmail) => {
-  const logoUrl = 'https://i.ibb.co.com/DfVdzyLv/mohammed.png';
+    const logoUrl = 'https://i.ibb.co.com/dsbKRKN6/logo2.jpg';
 
-  return `
+    return `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -79,7 +79,7 @@ export const InviteLinkTemplate = (inviteLink, senderEmail) => {
                       <tr>
                           <td style="background:#f8fafc;padding:20px;text-align:center;">
                               <p style="margin:0;font-size:13px;color:#777;">
-                                  © ${new Date().getFullYear()} Your Company. All rights reserved.
+                                  © ${new Date().getFullYear()} Second Sight. All rights reserved.
                               </p>
                           </td>
                       </tr>
