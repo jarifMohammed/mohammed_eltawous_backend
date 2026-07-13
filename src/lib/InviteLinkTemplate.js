@@ -1,7 +1,7 @@
 export const InviteLinkTemplate = (inviteLink, senderEmail) => {
-  const logoUrl = 'https://i.ibb.co.com/DfVdzyLv/mohammed.png';
+    const logoUrl = 'https://i.ibb.co.com/dsbKRKN6/logo2.jpg';
 
-  return `
+    return `
   <!DOCTYPE html>
   <html lang="en">
   <head>
